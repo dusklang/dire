@@ -1,9 +1,9 @@
-mod hir;
-mod ty;
-mod arch;
-mod index_counter;
-mod source_info;
-mod mir;
+pub mod hir;
+pub mod ty;
+pub mod arch;
+pub mod index_counter;
+pub mod source_info;
+pub mod mir;
 
 use index_vec::{IndexVec, define_index_type};
 
@@ -19,12 +19,14 @@ pub enum Op {
     MirInstr(InstrId),
 }
 
+#[derive(Default)]
 pub struct Block {
-    ops: IndexVec<OpId, Op>,
+    pub ops: IndexVec<OpId, Op>,
 }
 
+#[derive(Default)]
 pub struct Code {
-    blocks: IndexVec<BlockId, Block>,
-    hir_code: HirCode,
-    mir_code: MirCode,
+    pub blocks: IndexVec<BlockId, Block>,
+    pub hir_code: HirCode,
+    pub mir_code: MirCode,
 }

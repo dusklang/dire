@@ -8,7 +8,7 @@ use string_interner::DefaultSymbol as Sym;
 
 use crate::ty::Type;
 use crate::index_counter::IndexCounter;
-use crate::source_info::SourceRange;
+use crate::source_info::{SourceRange, SourceFileId};
 
 define_index_type!(pub struct ExprId = u32;);
 define_index_type!(pub struct DeclRefId = u32;);
@@ -17,7 +17,6 @@ define_index_type!(pub struct CastId = u32;);
 define_index_type!(pub struct DeclId = u32;);
 define_index_type!(pub struct ItemId = u32;);
 define_index_type!(pub struct ModScopeId = u32;);
-define_index_type!(pub struct SourceFileId = u32;);
 define_index_type!(pub struct StructId = u32;);
 define_index_type!(pub struct StructLitId = u32;);
 define_index_type!(pub struct StoredDeclId = u32;);
@@ -261,6 +260,12 @@ impl Intrinsic {
     }
 }
 
+// These struct literals are necessary because the methods to make an Idx type are not const.
+pub const VOID_EXPR: ExprId = ExprId { _raw: 0 };
+pub const VOID_EXPR_ITEM: ItemId = ItemId { _raw: 0 };
+pub const VOID_TYPE: ExprId = ExprId { _raw: 1 };
+
+#[derive(Default)]
 pub struct HirCode {
     pub items: IndexVec<ItemId, Item>,
     pub exprs: IndexVec<ExprId, Expr>,
@@ -275,8 +280,6 @@ pub struct HirCode {
     pub mod_scopes: IndexVec<ModScopeId, ModScope>,
     pub imper_ns: IndexVec<ImperScopeNsId, ImperScopeNs>,
     pub mod_ns: IndexVec<ModScopeNsId, ModScopeNs>,
-    pub void_expr: ExprId,
-    pub void_ty: ExprId,
     pub source_ranges: IndexVec<ItemId, SourceRange>,
     pub cast_counter: IndexCounter<CastId>,
     pub structs: IndexVec<StructId, Struct>,

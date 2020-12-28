@@ -21,3 +21,9 @@ impl<I: Idx> IndexCounter<I> {
 
     pub fn len(&self) -> usize { self.next_id.index() }
 }
+
+impl<I: Idx> Default for IndexCounter<I> {
+    fn default() -> Self {
+        IndexCounter::new()
+    }
+}

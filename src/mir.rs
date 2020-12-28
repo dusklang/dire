@@ -106,6 +106,7 @@ pub struct StructLayout {
     pub stride: usize,
 }
 
+#[derive(Default)]
 pub struct MirCode {
     pub strings: IndexVec<StrId, CString>,
     pub functions: IndexVec<FuncId, Function>,
