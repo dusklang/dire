@@ -32,7 +32,7 @@ pub enum Type {
         is_signed: bool,
     },
     Float(FloatWidth),
-    // TODO: Eliminate this separate heap allocation by interning all types into an IdxVec
+    // TODO: Eliminate this separate heap allocation by interning all types into an IndexVec
     Pointer(Box<QualType>),
     Struct(StructId),
     Bool,
