@@ -13,10 +13,20 @@ use mir::{MirCode, FuncId, InstrId};
 define_index_type!(pub struct OpId = u32;);
 define_index_type!(pub struct BlockId = u32;);
 
+#[derive(Copy, Clone)]
 pub enum Op {
     HirItem(ItemId),
     MirFunc(FuncId),
     MirInstr(InstrId),
+}
+
+impl Op {
+    pub fn as_mir_instr(self) -> Option<InstrId> {
+        match self {
+            Op::MirInstr(instr) => Some(instr),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Default)]

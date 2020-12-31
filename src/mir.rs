@@ -7,7 +7,7 @@ use string_interner::DefaultSymbol as Sym;
 
 use crate::hir::{Intrinsic, StructId, ModScopeId};
 use crate::ty::Type;
-use crate::BlockId;
+use crate::{Code, BlockId, OpId, Block};
 
 define_index_type!(pub struct FuncId = u32;);
 define_index_type!(pub struct InstrId = u32;);
@@ -69,27 +69,56 @@ impl Const {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Function {
     pub name: Option<Sym>,
     pub ret_ty: Type,
-    pub entry: BlockId,
+    /// Index 0 is defined to be the entry block
+    pub blocks: Vec<BlockId>,
 }
 
-impl Function {
-    // TODO: Implement this
-    // pub fn num_parameters(&self) -> usize {
-    //     let raw_code = &self.code.raw;
-    //     assert_eq!(raw_code[0], Instr::Void);
-    //     let mut num_parameters = 0;
-    //     for i in 1..raw_code.len() {
-    //         match &raw_code[i] {
-    //             Instr::Parameter(_) => num_parameters += 1,
-    //             _ => break,
-    //         }
-    //     }
-    //     num_parameters
-    // }
+mod private {
+    pub trait Sealed {}
+}
+
+pub trait GetBlock<'a>: private::Sealed {
+    fn get_block(self, code: &'a Code) -> &'a Block;
+}
+
+impl private::Sealed for BlockId {}
+impl<'a> GetBlock<'a> for BlockId {
+    fn get_block(self, code: &'a Code) -> &'a Block {
+        &code.blocks[self]
+    }
+}
+
+impl private::Sealed for &Block {}
+impl<'a> GetBlock<'a> for &'a Block {
+    fn get_block(self, _code: &'a Code) -> &'a Block {
+        self
+    }
+}
+
+impl Code {
+    pub fn get_mir_instr<'a>(&'a self, block: impl GetBlock<'a>, op: OpId) -> Option<&'a Instr> {
+        let block = block.get_block(self);
+        block.ops[op].as_mir_instr().map(|instr| &self.mir_code.instrs[instr])
+    }
+
+    pub fn num_parameters(&self, func: &Function) -> usize {
+        let entry = func.blocks[0];
+        let block = &self.blocks[entry];
+        let void_instr = self.get_mir_instr(block, OpId::new(0)).unwrap();
+        assert_eq!(void_instr, &Instr::Void);
+        let mut num_parameters = 0;
+        for i in 1..block.ops.len() {
+            match self.get_mir_instr(block, OpId::new(i)).unwrap() {
+                Instr::Parameter(_) => num_parameters += 1,
+                _ => break,
+            }
+        }
+        num_parameters
+    }
 }
 
 #[derive(Clone)]
@@ -106,10 +135,43 @@ pub struct StructLayout {
     pub stride: usize,
 }
 
+#[derive(Debug)]
+pub enum BlockState {
+    Created,
+    Started,
+    Ended,
+}
+
 #[derive(Default)]
 pub struct MirCode {
     pub strings: IndexVec<StrId, CString>,
     pub functions: IndexVec<FuncId, Function>,
     pub statics: IndexVec<StaticId, Const>,
     pub structs: HashMap<StructId, Struct>,
+    pub instrs: IndexVec<InstrId, Instr>,
+    block_states: HashMap<BlockId, BlockState>,
+}
+
+impl MirCode {
+    fn get_block_state(&mut self, block: BlockId) -> &mut BlockState {
+        self.block_states.entry(block).or_insert(BlockState::Created)
+    }
+
+    pub fn start_block(&mut self, block: BlockId) {
+        let state = self.get_block_state(block);
+        assert!(!matches!(state, BlockState::Ended), "MIR: tried to start an ended block");
+        *state = BlockState::Started;
+    }
+
+    pub fn end_block(&mut self, block: BlockId) {
+        let state = self.get_block_state(block);
+        assert!(matches!(state, BlockState::Started), format!("MIR: tried to end a block in the {:?} state", *state));
+    }
+
+    pub fn check_all_blocks_ended(&self, func: &Function) {
+        for &block in &func.blocks {
+            let state = &self.block_states[&block];
+            assert!(matches!(state, BlockState::Ended), format!("Block {} was not ended", block.index()));
+        }
+    }
 }
