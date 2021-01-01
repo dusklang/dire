@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::ffi::CString;
 
-use index_vec::{IndexVec, define_index_type};
+use index_vec::{IndexVec, define_index_type, index_vec};
 use smallvec::SmallVec;
 use string_interner::DefaultSymbol as Sym;
 
@@ -142,7 +142,6 @@ pub enum BlockState {
     Ended,
 }
 
-#[derive(Default)]
 pub struct MirCode {
     pub strings: IndexVec<StrId, CString>,
     pub functions: IndexVec<FuncId, Function>,
@@ -153,6 +152,17 @@ pub struct MirCode {
 }
 
 impl MirCode {
+    pub fn new() -> Self {
+        MirCode {
+            strings: IndexVec::new(),
+            functions: IndexVec::new(),
+            statics: IndexVec::new(),
+            structs: HashMap::new(),
+            instrs: index_vec![Instr::Void],
+            block_states: HashMap::new(),
+        }
+    }
+
     fn get_block_state(&mut self, block: BlockId) -> &mut BlockState {
         self.block_states.entry(block).or_insert(BlockState::Created)
     }
@@ -174,4 +184,8 @@ impl MirCode {
             assert!(matches!(state, BlockState::Ended), format!("Block {} was not ended", block.index()));
         }
     }
+}
+
+impl Default for MirCode {
+    fn default() -> Self { Self::new() }
 }
