@@ -6,6 +6,7 @@ pub mod source_info;
 pub mod mir;
 
 use index_vec::{IndexVec, define_index_type};
+use display_adapter::display_adapter;
 
 use hir::{HirCode, ItemId};
 use mir::{MirCode, FuncId, InstrId};
@@ -13,7 +14,7 @@ use mir::{MirCode, FuncId, InstrId};
 define_index_type!(pub struct OpId = u32;);
 define_index_type!(pub struct BlockId = u32;);
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Op {
     HirItem(ItemId),
     MirFunc(FuncId),
@@ -39,4 +40,23 @@ pub struct Code {
     pub blocks: IndexVec<BlockId, Block>,
     pub hir_code: HirCode,
     pub mir_code: MirCode,
+}
+
+impl Code {
+    #[display_adapter]
+    pub fn display_block(&self, block: BlockId, w: &mut Formatter) {
+        let block = &self.blocks[block];
+        for (id, op) in block.ops.iter_enumerated() {
+            write!(w, "    %op{}", id.index())?;
+            match op {
+                &Op::MirInstr(instr) => {
+                    write!(w, "(%instr{}) = mir.", instr.index())?;
+                    let instr = &self.mir_code.instrs[instr];
+                    writeln!(w, "{:?}", instr)?;
+                },
+                other => panic!("Unhandled Op type {:?}", other),
+            }
+        }
+        Ok(())
+    }
 }

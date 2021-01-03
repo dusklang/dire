@@ -4,6 +4,7 @@ use std::ffi::CString;
 use index_vec::{IndexVec, define_index_type, index_vec};
 use smallvec::SmallVec;
 use string_interner::DefaultSymbol as Sym;
+use display_adapter::display_adapter;
 
 use crate::hir::{Intrinsic, StructId, ModScopeId};
 use crate::ty::Type;
@@ -108,16 +109,24 @@ impl Code {
     pub fn num_parameters(&self, func: &Function) -> usize {
         let entry = func.blocks[0];
         let block = &self.blocks[entry];
-        let void_instr = self.get_mir_instr(block, OpId::new(0)).unwrap();
-        assert_eq!(void_instr, &Instr::Void);
         let mut num_parameters = 0;
-        for i in 1..block.ops.len() {
+        for i in 0..block.ops.len() {
             match self.get_mir_instr(block, OpId::new(i)).unwrap() {
                 Instr::Parameter(_) => num_parameters += 1,
                 _ => break,
             }
         }
         num_parameters
+    }
+
+    #[display_adapter]
+    pub fn display_func(&self, func: &Function, name: &str, w: &mut Formatter) {
+        writeln!(w, "fn {}() {{", name)?;
+        for &block in &func.blocks {
+            write!(w, "%bb{}:\n{}", block.index(), self.display_block(block))?;
+        }
+        writeln!(w, "}}")?;
+        Ok(())
     }
 }
 
@@ -176,12 +185,19 @@ impl MirCode {
     pub fn end_block(&mut self, block: BlockId) {
         let state = self.get_block_state(block);
         assert!(matches!(state, BlockState::Started), format!("MIR: tried to end a block in the {:?} state", *state));
+        *state = BlockState::Ended;
+    }
+
+    pub fn first_unended_block(&self, func: &Function) -> Option<BlockId> {
+        func.blocks.iter().find(|&block| {
+            let state = &self.block_states[block];
+            !matches!(state, BlockState::Ended)
+        }).copied()
     }
 
     pub fn check_all_blocks_ended(&self, func: &Function) {
-        for &block in &func.blocks {
-            let state = &self.block_states[&block];
-            assert!(matches!(state, BlockState::Ended), format!("Block {} was not ended", block.index()));
+        if let Some(block) = self.first_unended_block(func) {
+            panic!("Block {} was not ended", block.index());
         }
     }
 }
