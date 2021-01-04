@@ -160,6 +160,17 @@ pub struct MirCode {
     block_states: HashMap<BlockId, BlockState>,
 }
 
+#[derive(Debug)]
+pub enum StartBlockError {
+    BlockEnded,
+}
+
+#[derive(Debug)]
+pub enum EndBlockError {
+    BlockEnded,
+    BlockNotStarted,
+}
+
 impl MirCode {
     pub fn new() -> Self {
         MirCode {
@@ -176,16 +187,28 @@ impl MirCode {
         self.block_states.entry(block).or_insert(BlockState::Created)
     }
 
-    pub fn start_block(&mut self, block: BlockId) {
+    pub fn start_block(&mut self, block: BlockId) -> Result<(), StartBlockError> {
         let state = self.get_block_state(block);
-        assert!(!matches!(state, BlockState::Ended), "MIR: tried to start an ended block");
-        *state = BlockState::Started;
+        match state {
+            BlockState::Created => {
+                *state = BlockState::Started;
+                Ok(())
+            }
+            BlockState::Started => Ok(()),
+            BlockState::Ended => Err(StartBlockError::BlockEnded),
+        }
     }
 
-    pub fn end_block(&mut self, block: BlockId) {
+    pub fn end_block(&mut self, block: BlockId) -> Result<(), EndBlockError> {
         let state = self.get_block_state(block);
-        assert!(matches!(state, BlockState::Started), format!("MIR: tried to end a block in the {:?} state", *state));
-        *state = BlockState::Ended;
+        match state {
+            BlockState::Created => Err(EndBlockError::BlockNotStarted),
+            BlockState::Started => {
+                *state = BlockState::Ended;
+                Ok(())
+            },
+            BlockState::Ended => Err(EndBlockError::BlockEnded),
+        }
     }
 
     pub fn first_unended_block(&self, func: &Function) -> Option<BlockId> {
@@ -197,7 +220,7 @@ impl MirCode {
 
     pub fn check_all_blocks_ended(&self, func: &Function) {
         if let Some(block) = self.first_unended_block(func) {
-            panic!("Block {} was not ended", block.index());
+            panic!("MIR: Block {} was not ended", block.index());
         }
     }
 }
