@@ -14,23 +14,23 @@ use mir::{MirCode, InstrId};
 define_index_type!(pub struct OpId = u32;);
 define_index_type!(pub struct BlockId = u32;);
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum Op {
     HirItem(Item),
     MirInstr(InstrId),
 }
 
 impl Op {
-    pub fn as_mir_instr(self) -> Option<InstrId> {
+    pub fn as_mir_instr(&self) -> Option<InstrId> {
         match self {
-            Op::MirInstr(instr) => Some(instr),
+            &Op::MirInstr(instr) => Some(instr),
             _ => None,
         }
     }
 
-    pub fn as_hir_item(self) -> Option<Item> {
+    pub fn as_hir_item(&self) -> Option<Item> {
         match self {
-            Op::HirItem(item) => Some(item),
+            &Op::HirItem(item) => Some(item),
             _ => None,
         }
     }
@@ -55,8 +55,7 @@ impl Code {
         let block = &self.blocks[block];
         for &id in &block.ops {
             write!(w, "    %op{}", id.index())?;
-            let op = self.ops[id];
-            match op {
+            match self.ops[id] {
                 Op::MirInstr(instr) => {
                     write!(w, "(%instr{}) = mir.", instr.index())?;
                     let instr = &self.mir_code.instrs[instr];
