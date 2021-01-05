@@ -5,7 +5,7 @@ pub mod index_counter;
 pub mod source_info;
 pub mod mir;
 
-use index_vec::{IndexVec, define_index_type};
+use index_vec::{IndexVec, index_vec, define_index_type};
 use display_adapter::display_adapter;
 
 use hir::{HirCode, Item};
@@ -40,13 +40,22 @@ impl Op {
 pub struct Block {
     pub ops: Vec<OpId>,
 }
-
-#[derive(Default)]
 pub struct Code {
     pub blocks: IndexVec<BlockId, Block>,
     pub ops: IndexVec<OpId, Op>,
     pub hir_code: HirCode,
     pub mir_code: MirCode,
+}
+
+impl Default for Code {
+    fn default() -> Self {
+        Self {
+            blocks: IndexVec::default(),
+            ops: index_vec![Op::MirInstr(Instr::Void)],
+            hir_code: HirCode::default(),
+            mir_code: MirCode::default(),
+        }
+    }
 }
 
 impl Code {

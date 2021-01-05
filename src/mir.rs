@@ -14,6 +14,8 @@ define_index_type!(pub struct FuncId = u32;);
 define_index_type!(pub struct StaticId = u32;);
 define_index_type!(pub struct StrId = u32;);
 
+pub const VOID_INSTR: OpId = OpId::from_usize_unchecked(0);
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Instr {
     Void,
