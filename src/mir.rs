@@ -8,7 +8,7 @@ use display_adapter::display_adapter;
 
 use crate::hir::{Intrinsic, StructId, ModScopeId};
 use crate::ty::Type;
-use crate::{Code, BlockId, Block};
+use crate::{Code, BlockId, OpId};
 
 define_index_type!(pub struct FuncId = u32;);
 define_index_type!(pub struct InstrId = u32;);
@@ -78,46 +78,17 @@ pub struct Function {
     pub blocks: Vec<BlockId>,
 }
 
-mod private {
-    pub trait Sealed {}
-}
-
-pub trait GetBlock<'a>: private::Sealed {
-    fn get_block(self, code: &'a Code) -> &'a Block;
-}
-
-impl private::Sealed for BlockId {}
-impl<'a> GetBlock<'a> for BlockId {
-    fn get_block(self, code: &'a Code) -> &'a Block {
-        &code.blocks[self]
-    }
-}
-
-impl private::Sealed for &Block {}
-impl<'a> GetBlock<'a> for &'a Block {
-    fn get_block(self, _code: &'a Code) -> &'a Block {
-        self
-    }
-}
-
 impl Code {
-    pub fn get_mir_instr<'a>(&'a self, block: impl GetBlock<'a>, op: usize) -> Option<&'a Instr> {
-        let block = block.get_block(self);
-        let op = block.ops[op];
+    pub fn get_mir_instr<'a>(&'a self, op: OpId) -> Option<&'a Instr> {
         self.ops[op].as_mir_instr().map(|instr| &self.mir_code.instrs[instr])
     }
 
     pub fn num_parameters(&self, func: &Function) -> usize {
         let entry = func.blocks[0];
         let block = &self.blocks[entry];
-        let mut num_parameters = 0;
-        for i in 0..block.ops.len() {
-            match self.get_mir_instr(block, i).unwrap() {
-                Instr::Parameter(_) => num_parameters += 1,
-                _ => break,
-            }
-        }
-        num_parameters
+        block.ops.iter()
+            .filter(|&&op| matches!(self.get_mir_instr(op).unwrap(), Instr::Parameter(_)))
+            .count()
     }
 
     #[display_adapter]
