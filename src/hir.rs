@@ -9,6 +9,7 @@ use string_interner::DefaultSymbol as Sym;
 use crate::ty::Type;
 use crate::index_counter::IndexCounter;
 use crate::source_info::{SourceRange, SourceFileId};
+use crate::BlockId;
 
 define_index_type!(pub struct ExprId = u32;);
 define_index_type!(pub struct DeclRefId = u32;);
@@ -55,6 +56,12 @@ pub struct ImperScopeNs {
 pub struct ModScopeNs {
     pub scope: ModScopeId,
     pub parent: Option<Namespace>,
+}
+
+#[derive(Debug)]
+pub struct ImperScope {
+    pub block: BlockId,
+    pub terminal_expr: ExprId,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -106,19 +113,6 @@ pub enum Expr {
 pub enum Item {
     Expr(ExprId),
     Decl(DeclId),
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum ScopeItem {
-    Stmt(ExprId),
-    StoredDecl { decl_id: DeclId, id: StoredDeclId, root_expr: ExprId },
-    ComputedDecl(DeclId),
-}
-
-#[derive(Debug)]
-pub struct ImperScope {
-    pub items: Vec<ScopeItem>,
-    pub terminal_expr: ExprId,
 }
 
 #[derive(Debug, Default)]
