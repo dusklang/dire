@@ -38,12 +38,13 @@ impl Op {
 
 #[derive(Default)]
 pub struct Block {
-    pub ops: IndexVec<OpId, Op>,
+    pub ops: Vec<OpId>,
 }
 
 #[derive(Default)]
 pub struct Code {
     pub blocks: IndexVec<BlockId, Block>,
+    pub ops: IndexVec<OpId, Op>,
     pub hir_code: HirCode,
     pub mir_code: MirCode,
 }
@@ -52,15 +53,16 @@ impl Code {
     #[display_adapter]
     pub fn display_block(&self, block: BlockId, w: &mut Formatter) {
         let block = &self.blocks[block];
-        for (id, op) in block.ops.iter_enumerated() {
+        for &id in &block.ops {
             write!(w, "    %op{}", id.index())?;
+            let op = self.ops[id];
             match op {
-                &Op::MirInstr(instr) => {
+                Op::MirInstr(instr) => {
                     write!(w, "(%instr{}) = mir.", instr.index())?;
                     let instr = &self.mir_code.instrs[instr];
                     writeln!(w, "{:?}", instr)?;
                 },
-                &Op::HirItem(item) => {
+                Op::HirItem(item) => {
                     match item {
                         Item::Expr(expr) => {
                             write!(w, "(%expr{}) = hir.", expr.index())?;

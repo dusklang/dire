@@ -8,7 +8,7 @@ use display_adapter::display_adapter;
 
 use crate::hir::{Intrinsic, StructId, ModScopeId};
 use crate::ty::Type;
-use crate::{Code, BlockId, OpId, Block};
+use crate::{Code, BlockId, Block};
 
 define_index_type!(pub struct FuncId = u32;);
 define_index_type!(pub struct InstrId = u32;);
@@ -101,9 +101,10 @@ impl<'a> GetBlock<'a> for &'a Block {
 }
 
 impl Code {
-    pub fn get_mir_instr<'a>(&'a self, block: impl GetBlock<'a>, op: OpId) -> Option<&'a Instr> {
+    pub fn get_mir_instr<'a>(&'a self, block: impl GetBlock<'a>, op: usize) -> Option<&'a Instr> {
         let block = block.get_block(self);
-        block.ops[op].as_mir_instr().map(|instr| &self.mir_code.instrs[instr])
+        let op = block.ops[op];
+        self.ops[op].as_mir_instr().map(|instr| &self.mir_code.instrs[instr])
     }
 
     pub fn num_parameters(&self, func: &Function) -> usize {
@@ -111,7 +112,7 @@ impl Code {
         let block = &self.blocks[entry];
         let mut num_parameters = 0;
         for i in 0..block.ops.len() {
-            match self.get_mir_instr(block, OpId::new(i)).unwrap() {
+            match self.get_mir_instr(block, i).unwrap() {
                 Instr::Parameter(_) => num_parameters += 1,
                 _ => break,
             }
