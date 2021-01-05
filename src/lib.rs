@@ -61,6 +61,20 @@ impl Code {
                     let instr = &self.mir_code.instrs[instr];
                     writeln!(w, "{:?}", instr)?;
                 },
+                &Op::HirItem(item) => {
+                    match item {
+                        Item::Expr(expr) => {
+                            write!(w, "(%expr{}) = hir.", expr.index())?;
+                            let expr = &self.hir_code.exprs[expr];
+                            writeln!(w, "{:?}", expr)?;
+                        },
+                        Item::Decl(decl) => {
+                            write!(w, "(%decl{}) = hir.", decl.index())?;
+                            let decl = &self.hir_code.decls[decl];
+                            writeln!(w, "{:?}", decl)?;
+                        }
+                    }
+                },
                 other => panic!("Unhandled Op type {:?}", other),
             }
         }
