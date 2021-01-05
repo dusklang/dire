@@ -9,7 +9,7 @@ use index_vec::{IndexVec, define_index_type};
 use display_adapter::display_adapter;
 
 use hir::{HirCode, Item};
-use mir::{MirCode, InstrId};
+use mir::{MirCode, Instr};
 
 define_index_type!(pub struct OpId = u32;);
 define_index_type!(pub struct BlockId = u32;);
@@ -17,13 +17,13 @@ define_index_type!(pub struct BlockId = u32;);
 #[derive(Clone, Debug)]
 pub enum Op {
     HirItem(Item),
-    MirInstr(InstrId),
+    MirInstr(Instr),
 }
 
 impl Op {
-    pub fn as_mir_instr(&self) -> Option<InstrId> {
+    pub fn as_mir_instr(&self) -> Option<&Instr> {
         match self {
-            &Op::MirInstr(instr) => Some(instr),
+            Op::MirInstr(instr) => Some(instr),
             _ => None,
         }
     }
@@ -56,11 +56,6 @@ impl Code {
         for &id in &block.ops {
             write!(w, "    %op{}", id.index())?;
             match self.ops[id] {
-                Op::MirInstr(instr) => {
-                    write!(w, "(%instr{}) = mir.", instr.index())?;
-                    let instr = &self.mir_code.instrs[instr];
-                    writeln!(w, "{:?}", instr)?;
-                },
                 Op::HirItem(item) => {
                     match item {
                         Item::Expr(expr) => {
@@ -74,6 +69,9 @@ impl Code {
                             writeln!(w, "{:?}", decl)?;
                         }
                     }
+                },
+                Op::MirInstr(ref instr) => {
+                    writeln!(w, " = mir.{:?}", instr)?;
                 },
             }
         }

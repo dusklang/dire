@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::ffi::CString;
 
-use index_vec::{IndexVec, define_index_type, index_vec};
+use index_vec::{IndexVec, define_index_type};
 use smallvec::SmallVec;
 use string_interner::DefaultSymbol as Sym;
 use display_adapter::display_adapter;
@@ -11,36 +11,35 @@ use crate::ty::Type;
 use crate::{Code, BlockId, OpId};
 
 define_index_type!(pub struct FuncId = u32;);
-define_index_type!(pub struct InstrId = u32;);
 define_index_type!(pub struct StaticId = u32;);
 define_index_type!(pub struct StrId = u32;);
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Instr {
     Void,
     Const(Const),
     Alloca(Type),
-    LogicalNot(InstrId),
-    Call { arguments: SmallVec<[InstrId; 2]>, func: FuncId },
-    Intrinsic { arguments: SmallVec<[InstrId; 2]>, ty: Type, intr: Intrinsic },
-    Reinterpret(InstrId, Type),
-    Truncate(InstrId, Type),
-    SignExtend(InstrId, Type),
-    ZeroExtend(InstrId, Type),
-    FloatCast(InstrId, Type),
-    FloatToInt(InstrId, Type),
-    IntToFloat(InstrId, Type),
-    Load(InstrId),
-    Store { location: InstrId, value: InstrId },
+    LogicalNot(OpId),
+    Call { arguments: SmallVec<[OpId; 2]>, func: FuncId },
+    Intrinsic { arguments: SmallVec<[OpId; 2]>, ty: Type, intr: Intrinsic },
+    Reinterpret(OpId, Type),
+    Truncate(OpId, Type),
+    SignExtend(OpId, Type),
+    ZeroExtend(OpId, Type),
+    FloatCast(OpId, Type),
+    FloatToInt(OpId, Type),
+    IntToFloat(OpId, Type),
+    Load(OpId),
+    Store { location: OpId, value: OpId },
     AddressOfStatic(StaticId),
-    Pointer { op: InstrId, is_mut: bool },
-    Struct { fields: SmallVec<[InstrId; 2]>, id: StructId },
-    StructLit { fields: SmallVec<[InstrId; 2]>, id: StructId },
-    DirectFieldAccess { val: InstrId, index: usize },
-    IndirectFieldAccess { val: InstrId, index: usize },
-    Ret(InstrId),
+    Pointer { op: OpId, is_mut: bool },
+    Struct { fields: SmallVec<[OpId; 2]>, id: StructId },
+    StructLit { fields: SmallVec<[OpId; 2]>, id: StructId },
+    DirectFieldAccess { val: OpId, index: usize },
+    IndirectFieldAccess { val: OpId, index: usize },
+    Ret(OpId),
     Br(BlockId),
-    CondBr { condition: InstrId, true_bb: BlockId, false_bb: BlockId },
+    CondBr { condition: OpId, true_bb: BlockId, false_bb: BlockId },
     /// Only valid at the beginning of a function, right after the void instruction
     Parameter(Type),
 }
@@ -79,15 +78,11 @@ pub struct Function {
 }
 
 impl Code {
-    pub fn get_mir_instr<'a>(&'a self, op: OpId) -> Option<&'a Instr> {
-        self.ops[op].as_mir_instr().map(|instr| &self.mir_code.instrs[instr])
-    }
-
     pub fn num_parameters(&self, func: &Function) -> usize {
         let entry = func.blocks[0];
         let block = &self.blocks[entry];
         block.ops.iter()
-            .filter(|&&op| matches!(self.get_mir_instr(op).unwrap(), Instr::Parameter(_)))
+            .filter(|&&op| matches!(self.ops[op].as_mir_instr().unwrap(), Instr::Parameter(_)))
             .count()
     }
 
@@ -128,7 +123,6 @@ pub struct MirCode {
     pub functions: IndexVec<FuncId, Function>,
     pub statics: IndexVec<StaticId, Const>,
     pub structs: HashMap<StructId, Struct>,
-    pub instrs: IndexVec<InstrId, Instr>,
     block_states: HashMap<BlockId, BlockState>,
 }
 
@@ -150,7 +144,6 @@ impl MirCode {
             functions: IndexVec::new(),
             statics: IndexVec::new(),
             structs: HashMap::new(),
-            instrs: index_vec![Instr::Void],
             block_states: HashMap::new(),
         }
     }
