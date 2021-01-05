@@ -9,7 +9,7 @@ use index_vec::{IndexVec, define_index_type};
 use display_adapter::display_adapter;
 
 use hir::{HirCode, Item};
-use mir::{MirCode, FuncId, InstrId};
+use mir::{MirCode, InstrId};
 
 define_index_type!(pub struct OpId = u32;);
 define_index_type!(pub struct BlockId = u32;);
@@ -17,7 +17,6 @@ define_index_type!(pub struct BlockId = u32;);
 #[derive(Copy, Clone, Debug)]
 pub enum Op {
     HirItem(Item),
-    MirFunc(FuncId),
     MirInstr(InstrId),
 }
 
@@ -75,7 +74,6 @@ impl Code {
                         }
                     }
                 },
-                other => panic!("Unhandled Op type {:?}", other),
             }
         }
         Ok(())
