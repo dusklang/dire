@@ -8,7 +8,7 @@ pub mod mir;
 use index_vec::{IndexVec, define_index_type};
 use display_adapter::display_adapter;
 
-use hir::{HirCode, ItemId};
+use hir::{HirCode, Item};
 use mir::{MirCode, FuncId, InstrId};
 
 define_index_type!(pub struct OpId = u32;);
@@ -16,7 +16,7 @@ define_index_type!(pub struct BlockId = u32;);
 
 #[derive(Copy, Clone, Debug)]
 pub enum Op {
-    HirItem(ItemId),
+    HirItem(Item),
     MirFunc(FuncId),
     MirInstr(InstrId),
 }
@@ -25,6 +25,13 @@ impl Op {
     pub fn as_mir_instr(self) -> Option<InstrId> {
         match self {
             Op::MirInstr(instr) => Some(instr),
+            _ => None,
+        }
+    }
+
+    pub fn as_hir_item(self) -> Option<Item> {
+        match self {
+            Op::HirItem(item) => Some(item),
             _ => None,
         }
     }
