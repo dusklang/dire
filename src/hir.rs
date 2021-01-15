@@ -150,6 +150,8 @@ pub enum Decl {
     Static(ExprId),
     Const(ExprId),
     Field(FieldDeclId),
+    /// The magic `return_value` declaration, for use in postcondition attributes
+    ReturnValue,
 }
 
 #[derive(Debug)]
@@ -272,6 +274,7 @@ impl Intrinsic {
 pub const VOID_EXPR: ExprId = ExprId { _raw: 0 };
 pub const VOID_EXPR_ITEM: ItemId = ItemId { _raw: 0 };
 pub const VOID_TYPE: ExprId = ExprId { _raw: 1 };
+pub const RETURN_VALUE_DECL: DeclId = DeclId { _raw: 0 };
 
 pub struct Attribute {
     pub attr: Sym,
