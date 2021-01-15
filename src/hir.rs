@@ -60,6 +60,14 @@ pub struct ModScopeNs {
 }
 
 #[derive(Debug)]
+pub struct ConditionNs {
+    /// The function that this condition namespace refers to
+    /// NOTE: updated to the correct value after parsing the function
+    pub func: DeclId,
+    pub parent: Option<Namespace>,
+}
+
+#[derive(Debug)]
 pub struct ImperScope {
     pub block: BlockId,
     pub terminal_expr: ExprId,
@@ -71,10 +79,6 @@ pub enum Namespace {
     Mod(ModScopeNsId),
     MemberRef { base_expr: ExprId, },
 
-    // NOTE: The indirection of these these two namespace kinds is actually helpful, because the
-    // parser doesn't know what function an attribute is applied to until it's actually seen the
-    // function. If we just stored a DeclId here, we'd have to patch the namespaces of every
-    // DeclRef that appears as part of the function's attributes after parsing the function.
     /// Includes the parameters of the function
     Precondition(ConditionNsId),
     /// Includes the parameters of the function, and a magic "retVal" value
@@ -292,7 +296,7 @@ pub struct HirCode {
     pub mod_scopes: IndexVec<ModScopeId, ModScope>,
     pub imper_ns: IndexVec<ImperScopeNsId, ImperScopeNs>,
     pub mod_ns: IndexVec<ModScopeNsId, ModScopeNs>,
-    pub condition_ns: IndexVec<ConditionNsId, DeclId>,
+    pub condition_ns: IndexVec<ConditionNsId, ConditionNs>,
     pub source_ranges: IndexVec<ItemId, SourceRange>,
     pub cast_counter: IndexCounter<CastId>,
     pub structs: IndexVec<StructId, Struct>,
