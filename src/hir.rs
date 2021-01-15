@@ -81,7 +81,7 @@ pub enum Namespace {
 
     /// Includes the parameters of the function
     Precondition(ConditionNsId),
-    /// Includes the parameters of the function, and a magic "retVal" value
+    /// Includes the parameters of the function, and a magic "return_value" value
     Postcondition(ConditionNsId),
 }
 
