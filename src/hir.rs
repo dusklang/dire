@@ -69,6 +69,10 @@ pub enum Namespace {
     Imper { scope: ImperScopeNsId, end_offset: usize },
     Mod(ModScopeNsId),
     MemberRef { base_expr: ExprId, },
+    /// Includes the parameters of the function
+    Precondition(DeclId),
+    /// Includes the parameters of the function, and a magic "retVal" value
+    Postcondition(DeclId),
 }
 
 #[derive(Debug)]
