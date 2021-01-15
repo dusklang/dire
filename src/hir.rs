@@ -23,6 +23,7 @@ define_index_type!(pub struct StructLitId = u32;);
 define_index_type!(pub struct StoredDeclId = u32;);
 define_index_type!(pub struct ImperScopeNsId = u32;);
 define_index_type!(pub struct ModScopeNsId = u32;);
+define_index_type!(pub struct ConditionNsId = u32;);
 define_index_type!(pub struct FieldDeclId = u32;);
 
 #[derive(Debug, Clone, Copy)]
@@ -69,10 +70,15 @@ pub enum Namespace {
     Imper { scope: ImperScopeNsId, end_offset: usize },
     Mod(ModScopeNsId),
     MemberRef { base_expr: ExprId, },
+
+    // NOTE: The indirection of these these two namespace kinds is actually helpful, because the
+    // parser doesn't know what function an attribute is applied to until it's actually seen the
+    // function. If we just stored a DeclId here, we'd have to patch the namespaces of every
+    // DeclRef that appears as part of the function's attributes after parsing the function.
     /// Includes the parameters of the function
-    Precondition(DeclId),
+    Precondition(ConditionNsId),
     /// Includes the parameters of the function, and a magic "retVal" value
-    Postcondition(DeclId),
+    Postcondition(ConditionNsId),
 }
 
 #[derive(Debug)]
@@ -286,6 +292,7 @@ pub struct HirCode {
     pub mod_scopes: IndexVec<ModScopeId, ModScope>,
     pub imper_ns: IndexVec<ImperScopeNsId, ImperScopeNs>,
     pub mod_ns: IndexVec<ModScopeNsId, ModScopeNs>,
+    pub condition_ns: IndexVec<ConditionNsId, DeclId>,
     pub source_ranges: IndexVec<ItemId, SourceRange>,
     pub cast_counter: IndexCounter<CastId>,
     pub structs: IndexVec<StructId, Struct>,
