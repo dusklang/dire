@@ -259,12 +259,20 @@ pub const VOID_EXPR: ExprId = ExprId { _raw: 0 };
 pub const VOID_EXPR_ITEM: ItemId = ItemId { _raw: 0 };
 pub const VOID_TYPE: ExprId = ExprId { _raw: 1 };
 
+pub struct Attribute {
+    pub attr: Sym,
+    pub arg: Option<ExprId>,
+    /// The range of the whole attribute, including @ sign and parentheses
+    pub range: SourceRange,
+}
+
 #[derive(Default)]
 pub struct HirCode {
     pub items: IndexVec<ItemId, Item>,
     pub exprs: IndexVec<ExprId, Expr>,
     pub decl_refs: IndexVec<DeclRefId, DeclRef>,
     pub decls: IndexVec<DeclId, Decl>,
+    pub decl_attributes: HashMap<DeclId, Vec<Attribute>>,
     pub expr_to_items: IndexVec<ExprId, ItemId>,
     pub decl_to_items: IndexVec<DeclId, ItemId>,
     pub names: IndexVec<DeclId, Sym>,
