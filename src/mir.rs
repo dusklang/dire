@@ -6,7 +6,7 @@ use smallvec::SmallVec;
 use string_interner::DefaultSymbol as Sym;
 use display_adapter::display_adapter;
 
-use crate::hir::{Intrinsic, StructId, ModScopeId};
+use crate::hir::{Intrinsic, DeclId, StructId, ModScopeId};
 use crate::ty::Type;
 use crate::{Code, BlockId, OpId};
 
@@ -77,6 +77,7 @@ pub struct Function {
     pub ret_ty: Type,
     /// Index 0 is defined to be the entry block
     pub blocks: Vec<BlockId>,
+    pub decl: Option<DeclId>,
 }
 
 impl Code {
