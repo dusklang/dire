@@ -150,7 +150,7 @@ pub enum Decl {
     Static(ExprId),
     Const(ExprId),
     Field(FieldDeclId),
-    /// The magic `return_value` declaration, for use in `guarantees` attributes
+    /// The magic `return_value` declaration, for use in `@guarantees` attributes
     ReturnValue,
 }
 
