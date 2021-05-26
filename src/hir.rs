@@ -287,6 +287,7 @@ pub struct Attribute {
 pub struct HirCode {
     pub items: IndexVec<ItemId, Item>,
     pub exprs: IndexVec<ExprId, Expr>,
+    pub source_ranges: IndexVec<ItemId, SourceRange>,
     pub decl_refs: IndexVec<DeclRefId, DeclRef>,
     pub decls: IndexVec<DeclId, Decl>,
     pub decl_attributes: HashMap<DeclId, Vec<Attribute>>,

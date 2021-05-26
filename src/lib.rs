@@ -7,7 +7,6 @@ pub mod mir;
 
 use index_vec::{IndexVec, index_vec, define_index_type};
 use display_adapter::display_adapter;
-use source_info::SourceRange;
 
 use hir::{HirCode, Item};
 use mir::{MirCode, Instr};
@@ -44,7 +43,6 @@ pub struct Block {
 pub struct Code {
     pub blocks: IndexVec<BlockId, Block>,
     pub ops: IndexVec<OpId, Op>,
-    pub source_ranges: IndexVec<OpId, SourceRange>,
     pub hir_code: HirCode,
     pub mir_code: MirCode,
 }
@@ -54,7 +52,6 @@ impl Default for Code {
         Self {
             blocks: IndexVec::default(),
             ops: index_vec![Op::MirInstr(Instr::Void)],
-            source_ranges: index_vec![SourceRange::default()],
             hir_code: HirCode::default(),
             mir_code: MirCode::default(),
         }
