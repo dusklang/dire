@@ -129,6 +129,18 @@ pub enum Item {
     Decl(DeclId),
 }
 
+impl From<ExprId> for Item {
+    fn from(expr: ExprId) -> Self {
+        Item::Expr(expr)
+    }
+}
+
+impl From<DeclId> for Item {
+    fn from(decl: DeclId) -> Self {
+        Item::Decl(decl)
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct ModScope {
     pub decl_groups: HashMap<Sym, Vec<ModScopedDecl>>,
