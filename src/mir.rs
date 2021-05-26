@@ -9,6 +9,7 @@ use display_adapter::display_adapter;
 use crate::hir::{Intrinsic, DeclId, StructId, ModScopeId};
 use crate::ty::Type;
 use crate::{Code, BlockId, OpId};
+use crate::source_info::SourceRange;
 
 define_index_type!(pub struct FuncId = u32;);
 define_index_type!(pub struct StaticId = u32;);
@@ -126,6 +127,7 @@ pub struct MirCode {
     pub functions: IndexVec<FuncId, Function>,
     pub statics: IndexVec<StaticId, Const>,
     pub structs: HashMap<StructId, Struct>,
+    pub source_ranges: HashMap<OpId, SourceRange>,
     block_states: HashMap<BlockId, BlockState>,
 }
 
@@ -147,6 +149,7 @@ impl MirCode {
             functions: IndexVec::new(),
             statics: IndexVec::new(),
             structs: HashMap::new(),
+            source_ranges: HashMap::new(),
             block_states: HashMap::new(),
         }
     }
