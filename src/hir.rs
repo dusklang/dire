@@ -80,9 +80,9 @@ pub enum Namespace {
     MemberRef { base_expr: ExprId, },
 
     /// Includes the parameters of the function
-    Precondition(ConditionNsId),
+    Requirement(ConditionNsId),
     /// Includes the parameters of the function, and a magic "return_value" value
-    Postcondition(ConditionNsId),
+    Guarantee(ConditionNsId),
 }
 
 #[derive(Debug)]
@@ -150,7 +150,7 @@ pub enum Decl {
     Static(ExprId),
     Const(ExprId),
     Field(FieldDeclId),
-    /// The magic `return_value` declaration, for use in postcondition attributes
+    /// The magic `return_value` declaration, for use in `guarantees` attributes
     ReturnValue,
 }
 
@@ -300,7 +300,6 @@ pub struct HirCode {
     pub imper_ns: IndexVec<ImperScopeNsId, ImperScopeNs>,
     pub mod_ns: IndexVec<ModScopeNsId, ModScopeNs>,
     pub condition_ns: IndexVec<ConditionNsId, ConditionNs>,
-    pub source_ranges: IndexVec<ItemId, SourceRange>,
     pub cast_counter: IndexCounter<CastId>,
     pub structs: IndexVec<StructId, Struct>,
     pub field_decls: IndexVec<FieldDeclId, FieldDecl>,
