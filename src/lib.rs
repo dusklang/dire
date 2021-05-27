@@ -9,7 +9,8 @@ use index_vec::{IndexVec, index_vec, define_index_type};
 use display_adapter::display_adapter;
 
 use hir::{HirCode, Item};
-use mir::{MirCode, Instr};
+use mir::{MirCode, Instr, VOID_INSTR};
+use source_info::SourceRange;
 
 define_index_type!(pub struct OpId = u32;);
 define_index_type!(pub struct BlockId = u32;);
@@ -49,12 +50,14 @@ pub struct Code {
 
 impl Default for Code {
     fn default() -> Self {
-        Self {
+        let mut val = Code {
             blocks: IndexVec::default(),
             ops: index_vec![Op::MirInstr(Instr::Void)],
             hir_code: HirCode::default(),
             mir_code: MirCode::default(),
-        }
+        };
+        val.mir_code.source_ranges.insert(VOID_INSTR, SourceRange::default());
+        val
     }
 }
 
