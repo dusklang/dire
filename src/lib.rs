@@ -57,6 +57,7 @@ impl Default for Code {
             mir_code: MirCode::default(),
         };
         val.mir_code.source_ranges.insert(VOID_INSTR, SourceRange::default());
+        val.mir_code.instr_names.insert(VOID_INSTR, "void".to_string());
         val
     }
 }

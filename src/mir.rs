@@ -72,6 +72,23 @@ impl Const {
     }
 }
 
+#[derive(Default, Debug)]
+pub struct InstrNamespace {
+    name_usages: HashMap<String, u16>,
+}
+
+impl InstrNamespace {
+    pub fn insert(&mut self, name: impl Into<String>) -> String {
+        let mut name = name.into();
+        let entry = self.name_usages.entry(name.clone()).or_default();
+        if *entry > 0 {
+            name = format!("{}.{}", name, *entry);
+        }
+        *entry += 1;
+        name
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct Function {
     pub name: Option<Sym>,
@@ -79,6 +96,7 @@ pub struct Function {
     /// Index 0 is defined to be the entry block
     pub blocks: Vec<BlockId>,
     pub decl: Option<DeclId>,
+    pub instr_namespace: InstrNamespace,
 }
 
 impl Code {
@@ -122,12 +140,18 @@ pub enum BlockState {
     Ended,
 }
 
+pub struct Static {
+    pub name: String,
+    pub val: Const,
+}
+
 pub struct MirCode {
     pub strings: IndexVec<StrId, CString>,
     pub functions: IndexVec<FuncId, Function>,
-    pub statics: IndexVec<StaticId, Const>,
+    pub statics: IndexVec<StaticId, Static>,
     pub structs: HashMap<StructId, Struct>,
     pub source_ranges: HashMap<OpId, SourceRange>,
+    pub instr_names: HashMap<OpId, String>,
     block_states: HashMap<BlockId, BlockState>,
 }
 
@@ -150,6 +174,7 @@ impl MirCode {
             statics: IndexVec::new(),
             structs: HashMap::new(),
             source_ranges: HashMap::new(),
+            instr_names: HashMap::new(),
             block_states: HashMap::new(),
         }
     }
