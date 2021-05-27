@@ -1,4 +1,5 @@
 use std::cmp::{min, max};
+use std::ops::Add;
 
 use index_vec::define_index_type;
 
@@ -32,5 +33,13 @@ pub fn concat(a: SourceRange, b: SourceRange) -> SourceRange {
     SourceRange {
         start: min(a.start, b.start),
         end:   max(a.end, b.end),
+    }
+}
+
+impl Add<SourceRange> for SourceRange {
+    type Output = SourceRange;
+
+    fn add(self, rhs: SourceRange) -> Self::Output {
+        concat(self, rhs)
     }
 }
