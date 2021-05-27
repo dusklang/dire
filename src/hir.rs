@@ -25,6 +25,7 @@ define_index_type!(pub struct ImperScopeNsId = u32;);
 define_index_type!(pub struct ModScopeNsId = u32;);
 define_index_type!(pub struct ConditionNsId = u32;);
 define_index_type!(pub struct FieldDeclId = u32;);
+define_index_type!(pub struct GenericParamId = u32;);
 
 #[derive(Debug, Clone, Copy)]
 pub struct FieldAssignment {
