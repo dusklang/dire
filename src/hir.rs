@@ -24,6 +24,7 @@ define_index_type!(pub struct StoredDeclId = u32;);
 define_index_type!(pub struct ImperScopeNsId = u32;);
 define_index_type!(pub struct ModScopeNsId = u32;);
 define_index_type!(pub struct ConditionNsId = u32;);
+define_index_type!(pub struct CompDeclParamsNsId = u32;);
 define_index_type!(pub struct FieldDeclId = u32;);
 define_index_type!(pub struct GenericParamId = u32;);
 
@@ -69,6 +70,14 @@ pub struct ConditionNs {
 }
 
 #[derive(Debug)]
+pub struct CompDeclParamsNs {
+    /// The computed decl that this comp decl params namespace refers to
+    /// NOTE: updated to the correct value after parsing the function
+    pub func: DeclId,
+    pub parent: Option<Namespace>,
+}
+
+#[derive(Debug)]
 pub struct ImperScope {
     pub block: BlockId,
     pub terminal_expr: ExprId,
@@ -79,6 +88,7 @@ pub enum Namespace {
     Imper { scope: ImperScopeNsId, end_offset: usize },
     Mod(ModScopeNsId),
     MemberRef { base_expr: ExprId, },
+    CompDeclParams(CompDeclParamsNsId),
 
     /// Includes the parameters of the function
     Requirement(ConditionNsId),
@@ -153,6 +163,7 @@ pub enum Decl {
         param_tys: SmallVec<[ExprId; 2]>,
         params: Range<DeclId>,
         scope: ImperScopeId,
+        generic_params: Range<DeclId>,
     },
     Stored { id: StoredDeclId, is_mut: bool, root_expr: ExprId, },
     Parameter {
@@ -165,6 +176,7 @@ pub enum Decl {
     Field(FieldDeclId),
     /// The magic `return_value` declaration, for use in `@guarantees` attributes
     ReturnValue,
+    GenericParam(GenericParamId),
 }
 
 #[derive(Debug)]
@@ -287,6 +299,7 @@ impl Intrinsic {
 pub const VOID_EXPR: ExprId = ExprId { _raw: 0 };
 pub const VOID_EXPR_ITEM: ItemId = ItemId { _raw: 0 };
 pub const VOID_TYPE: ExprId = ExprId { _raw: 1 };
+pub const TYPE_TYPE: ExprId = ExprId { _raw: 2 };
 pub const RETURN_VALUE_DECL: DeclId = DeclId { _raw: 0 };
 
 pub struct Attribute {
@@ -314,6 +327,7 @@ pub struct HirCode {
     pub imper_ns: IndexVec<ImperScopeNsId, ImperScopeNs>,
     pub mod_ns: IndexVec<ModScopeNsId, ModScopeNs>,
     pub condition_ns: IndexVec<ConditionNsId, ConditionNs>,
+    pub comp_decl_params_ns: IndexVec<CompDeclParamsNsId, CompDeclParamsNs>,
     pub cast_counter: IndexCounter<CastId>,
     pub structs: IndexVec<StructId, Struct>,
     pub field_decls: IndexVec<FieldDeclId, FieldDecl>,

@@ -6,7 +6,7 @@ use smallvec::SmallVec;
 use string_interner::DefaultSymbol as Sym;
 use display_adapter::display_adapter;
 
-use crate::hir::{Intrinsic, DeclId, StructId, ModScopeId};
+use crate::hir::{Intrinsic, DeclId, StructId, ModScopeId, GenericParamId};
 use crate::ty::Type;
 use crate::{Code, BlockId, OpId};
 use crate::source_info::SourceRange;
@@ -43,6 +43,7 @@ pub enum Instr {
     Ret(OpId),
     Br(BlockId),
     CondBr { condition: OpId, true_bb: BlockId, false_bb: BlockId },
+    GenericParam(GenericParamId),
     /// Only valid at the beginning of a function, right after the void instruction
     Parameter(Type),
 }
@@ -96,6 +97,9 @@ pub struct Function {
     /// Index 0 is defined to be the entry block
     pub blocks: Vec<BlockId>,
     pub decl: Option<DeclId>,
+    // Note: Is a Vec, not a Range, because generic params might not always be contiguous in
+    // GenericParamId space
+    pub generic_params: Vec<GenericParamId>,
     pub instr_namespace: InstrNamespace,
 }
 

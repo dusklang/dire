@@ -118,6 +118,7 @@ impl Type {
         match (self, other) {
             (Type::Never, _other) => true,
             (Type::Pointer(a), Type::Pointer(b)) => a.trivially_convertible_to(b),
+            (_self, Type::GenericParam(_)) => true,
             (a, b) => a == b,
         }
     }

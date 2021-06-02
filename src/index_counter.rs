@@ -18,6 +18,10 @@ impl<I: Idx + AddAssign<usize>> IndexCounter<I> {
         next
     }
 
+    pub fn peek_next(&self) -> I {
+        self.next_id
+    }
+
     pub fn len(&self) -> usize { self.next_id.index() }
 }
 
