@@ -1,5 +1,5 @@
-# Mire: Meda Intermediate REpresentation
-This is (or will be) an intermediate representation library inspired by [MLIR](https://mlir.llvm.org/), primarily for use in the unannounced Meda programming language.
+# Dir: Dusk Intermediate Representation
+This is (or will be) an intermediate representation library inspired by [MLIR](https://mlir.llvm.org/), primarily for use in the Dusk programming language.
 
 Goals:
 - Fast

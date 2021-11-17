@@ -23,7 +23,7 @@ pub enum Instr {
     Const(Const),
     Alloca(Type),
     LogicalNot(OpId),
-    Call { arguments: SmallVec<[OpId; 2]>, func: FuncId },
+    Call { arguments: SmallVec<[OpId; 2]>, generic_arguments: Vec<Type>, func: FuncId },
     Intrinsic { arguments: SmallVec<[OpId; 2]>, ty: Type, intr: Intrinsic },
     Reinterpret(OpId, Type),
     Truncate(OpId, Type),
@@ -108,7 +108,7 @@ impl Code {
         let entry = func.blocks[0];
         let block = &self.blocks[entry];
         block.ops.iter()
-            .filter(|&&op| matches!(self.ops[op].as_mir_instr().unwrap(), Instr::Parameter(_)))
+            .filter(|&&op| matches!(self.ops[op].as_dil_instr().unwrap(), Instr::Parameter(_)))
             .count()
     }
 
@@ -149,7 +149,7 @@ pub struct Static {
     pub val: Const,
 }
 
-pub struct MirCode {
+pub struct DilCode {
     pub strings: IndexVec<StrId, CString>,
     pub functions: IndexVec<FuncId, Function>,
     pub statics: IndexVec<StaticId, Static>,
@@ -170,9 +170,9 @@ pub enum EndBlockError {
     BlockNotStarted,
 }
 
-impl MirCode {
+impl DilCode {
     pub fn new() -> Self {
-        MirCode {
+        DilCode {
             strings: IndexVec::new(),
             functions: IndexVec::new(),
             statics: IndexVec::new(),
@@ -220,11 +220,11 @@ impl MirCode {
 
     pub fn check_all_blocks_ended(&self, func: &Function) {
         if let Some(block) = self.first_unended_block(func) {
-            panic!("MIR: Block {} was not ended", block.index());
+            panic!("DIL: Block {} was not ended", block.index());
         }
     }
 }
 
-impl Default for MirCode {
+impl Default for DilCode {
     fn default() -> Self { Self::new() }
 }

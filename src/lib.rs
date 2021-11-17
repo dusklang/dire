@@ -3,13 +3,13 @@ pub mod ty;
 pub mod arch;
 pub mod index_counter;
 pub mod source_info;
-pub mod mir;
+pub mod dil;
 
 use index_vec::{IndexVec, index_vec, define_index_type};
 use display_adapter::display_adapter;
 
 use hir::{HirCode, Item};
-use mir::{MirCode, Instr, VOID_INSTR};
+use dil::{DilCode, Instr, VOID_INSTR};
 use source_info::SourceRange;
 
 define_index_type!(pub struct OpId = u32;);
@@ -18,13 +18,13 @@ define_index_type!(pub struct BlockId = u32;);
 #[derive(Clone, Debug)]
 pub enum Op {
     HirItem(Item),
-    MirInstr(Instr),
+    DilInstr(Instr),
 }
 
 impl Op {
-    pub fn as_mir_instr(&self) -> Option<&Instr> {
+    pub fn as_dil_instr(&self) -> Option<&Instr> {
         match self {
-            Op::MirInstr(instr) => Some(instr),
+            Op::DilInstr(instr) => Some(instr),
             _ => None,
         }
     }
@@ -45,19 +45,19 @@ pub struct Code {
     pub blocks: IndexVec<BlockId, Block>,
     pub ops: IndexVec<OpId, Op>,
     pub hir_code: HirCode,
-    pub mir_code: MirCode,
+    pub dil_code: DilCode,
 }
 
 impl Default for Code {
     fn default() -> Self {
         let mut val = Code {
             blocks: IndexVec::default(),
-            ops: index_vec![Op::MirInstr(Instr::Void)],
+            ops: index_vec![Op::DilInstr(Instr::Void)],
             hir_code: HirCode::default(),
-            mir_code: MirCode::default(),
+            dil_code: DilCode::default(),
         };
-        val.mir_code.source_ranges.insert(VOID_INSTR, SourceRange::default());
-        val.mir_code.instr_names.insert(VOID_INSTR, "void".to_string());
+        val.dil_code.source_ranges.insert(VOID_INSTR, SourceRange::default());
+        val.dil_code.instr_names.insert(VOID_INSTR, "void".to_string());
         val
     }
 }
@@ -83,8 +83,8 @@ impl Code {
                         }
                     }
                 },
-                Op::MirInstr(ref instr) => {
-                    writeln!(w, " = mir.{:?}", instr)?;
+                Op::DilInstr(ref instr) => {
+                    writeln!(w, " = dil.{:?}", instr)?;
                 },
             }
         }

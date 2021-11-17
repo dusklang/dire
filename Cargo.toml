@@ -1,5 +1,5 @@
 [package]
-name = "mire"
+name = "dir"
 version = "0.1.0"
 authors = ["Zach Wolfe <zachrwolfe@me.com>"]
 edition = "2018"
