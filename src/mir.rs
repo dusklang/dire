@@ -108,7 +108,7 @@ impl Code {
         let entry = func.blocks[0];
         let block = &self.blocks[entry];
         block.ops.iter()
-            .filter(|&&op| matches!(self.ops[op].as_dil_instr().unwrap(), Instr::Parameter(_)))
+            .filter(|&&op| matches!(self.ops[op].as_mir_instr().unwrap(), Instr::Parameter(_)))
             .count()
     }
 
@@ -149,7 +149,7 @@ pub struct Static {
     pub val: Const,
 }
 
-pub struct DilCode {
+pub struct MirCode {
     pub strings: IndexVec<StrId, CString>,
     pub functions: IndexVec<FuncId, Function>,
     pub statics: IndexVec<StaticId, Static>,
@@ -170,9 +170,9 @@ pub enum EndBlockError {
     BlockNotStarted,
 }
 
-impl DilCode {
+impl MirCode {
     pub fn new() -> Self {
-        DilCode {
+        MirCode {
             strings: IndexVec::new(),
             functions: IndexVec::new(),
             statics: IndexVec::new(),
@@ -220,11 +220,11 @@ impl DilCode {
 
     pub fn check_all_blocks_ended(&self, func: &Function) {
         if let Some(block) = self.first_unended_block(func) {
-            panic!("DIL: Block {} was not ended", block.index());
+            panic!("MIR: Block {} was not ended", block.index());
         }
     }
 }
 
-impl Default for DilCode {
+impl Default for MirCode {
     fn default() -> Self { Self::new() }
 }

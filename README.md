@@ -1,4 +1,4 @@
-# Dir: Dusk Intermediate Representation
+# Dire: Dusk Intermediate REpresentation
 This is (or will be) an intermediate representation library inspired by [MLIR](https://mlir.llvm.org/), primarily for use in the Dusk programming language.
 
 Goals:
