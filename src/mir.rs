@@ -6,7 +6,7 @@ use smallvec::SmallVec;
 use string_interner::DefaultSymbol as Sym;
 use display_adapter::display_adapter;
 
-use crate::hir::{Intrinsic, DeclId, StructId, ModScopeId, GenericParamId};
+use crate::hir::{Intrinsic, DeclId, StructId, EnumId, ModScopeId, GenericParamId};
 use crate::ty::Type;
 use crate::{Code, BlockId, OpId};
 use crate::source_info::SourceRange;
@@ -56,6 +56,9 @@ pub enum Const {
     Bool(bool),
     Ty(Type),
     Mod(ModScopeId),
+    // TODO: delet this, you can just write Const::Ty(Type::Enum(id))
+    Enum(EnumId),
+    BasicVariant { enuum: EnumId, index: usize },
     StructLit { fields: Vec<Const>, id: StructId },
 }
 
@@ -66,7 +69,8 @@ impl Const {
             Const::Float { ty, .. } => ty.clone(),
             Const::Str { ty, .. } => ty.clone(),
             Const::Bool(_) => Type::Bool,
-            Const::Ty(_) => Type::Ty,
+            Const::Ty(_) | Const::Enum(_) => Type::Ty,
+            &Const::BasicVariant { enuum, .. } => Type::Enum(enuum),
             Const::Mod(_) => Type::Mod,
             &Const::StructLit { id, .. } => Type::Struct(id),
         }

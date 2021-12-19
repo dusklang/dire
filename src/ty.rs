@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::arch::Arch;
-use crate::hir::{StructId, GenericParamId};
+use crate::hir::{StructId, EnumId, GenericParamId};
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum IntWidth {
     W8, W16, W32, W64, Pointer,
@@ -35,6 +35,7 @@ pub enum Type {
     // TODO: Eliminate this separate heap allocation by interning all types into an IndexVec
     Pointer(Box<QualType>),
     Struct(StructId),
+    Enum(EnumId),
     Bool,
     Void,
     Mod,
@@ -170,6 +171,9 @@ impl fmt::Debug for Type {
             // TODO: print out fields (issue #76)
             &Type::Struct(id) => {
                 write!(f, "struct{}", id.index())
+            },
+            &Type::Enum(id) => {
+                write!(f, "enum{}", id.index())
             }
             &Type::GenericParam(id) => {
                 write!(f, "generic_param{}", id.index())
