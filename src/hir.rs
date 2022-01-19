@@ -124,6 +124,10 @@ pub enum Expr {
     Do { scope: ImperScopeId },
     If { condition: ExprId, then_scope: ImperScopeId, else_scope: Option<ImperScopeId> },
     While { condition: ExprId, scope: ImperScopeId },
+    Switch {
+        scrutinee: ExprId,
+        cases: Vec<SwitchCase>,
+    },
     Cast { expr: ExprId, ty: ExprId, cast_id: CastId },
     Ret { expr: ExprId, decl: Option<DeclId> },
     Mod { id: ModScopeId },
@@ -209,6 +213,27 @@ pub struct Struct {
 pub struct Enum {
     // TODO: store VariantDecls inline instead
     pub variants: Vec<VariantDeclId>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SwitchCase {
+    pub pattern: Pattern,
+    pub scope: ImperScopeId,
+    pub scope_range: SourceRange,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Ident {
+    pub symbol: Sym,
+    pub range: SourceRange,
+}
+
+#[derive(Debug, Clone)]
+pub enum Pattern {
+    ContextualMember {
+        name: Ident,
+        range: SourceRange,
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
