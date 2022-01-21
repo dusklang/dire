@@ -26,7 +26,6 @@ define_index_type!(pub struct ImperScopeNsId = u32;);
 define_index_type!(pub struct ModScopeNsId = u32;);
 define_index_type!(pub struct ConditionNsId = u32;);
 define_index_type!(pub struct CompDeclParamsNsId = u32;);
-define_index_type!(pub struct FieldDeclId = u32;);
 define_index_type!(pub struct GenericParamId = u32;);
 
 #[derive(Debug, Clone, Copy)]
@@ -179,7 +178,7 @@ pub enum Decl {
     Intrinsic { intr: Intrinsic, param_tys: SmallVec<[ExprId; 2]>, function_like: bool },
     Static(ExprId),
     Const(ExprId),
-    Field(FieldDeclId),
+    Field { strukt: StructId, index: usize },
     Variant { enuum: EnumId, index: usize },
     /// The magic `return_value` declaration, for use in `@guarantees` attributes
     ReturnValue,
@@ -191,7 +190,6 @@ pub struct FieldDecl {
     pub decl: DeclId,
     pub name: Sym,
     pub ty: ExprId,
-    pub index: usize,
 }
 
 #[derive(Debug)]
@@ -204,7 +202,7 @@ pub struct VariantDecl {
 #[derive(Debug)]
 pub struct Struct {
     // TODO: store FieldDecls inline instead
-    pub fields: Vec<FieldDeclId>,
+    pub fields: Vec<FieldDecl>,
 }
 
 #[derive(Debug)]
@@ -371,6 +369,5 @@ pub struct HirCode {
     pub cast_counter: IndexCounter<CastId>,
     pub structs: IndexVec<StructId, Struct>,
     pub enums: IndexVec<EnumId, Enum>,
-    pub field_decls: IndexVec<FieldDeclId, FieldDecl>,
     pub struct_lits: IndexCounter<StructLitId>,
 }
