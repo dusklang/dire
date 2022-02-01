@@ -18,6 +18,12 @@ define_index_type!(pub struct StrId = u32;);
 pub const VOID_INSTR: OpId = OpId::from_usize_unchecked(0);
 
 #[derive(Clone, Debug, PartialEq)]
+pub struct SwitchCase {
+    pub value: Const,
+    pub bb: BlockId,
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum Instr {
     Void,
     Const(Const),
@@ -43,6 +49,7 @@ pub enum Instr {
     Ret(OpId),
     Br(BlockId),
     CondBr { condition: OpId, true_bb: BlockId, false_bb: BlockId },
+    SwitchBr { scrutinee: OpId, cases: Vec<SwitchCase>, catch_all_bb: BlockId },
     GenericParam(GenericParamId),
     /// Only valid at the beginning of a function, right after the void instruction
     Parameter(Type),
