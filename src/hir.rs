@@ -197,6 +197,7 @@ pub struct VariantDecl {
     pub decl: DeclId,
     pub name: Sym,
     pub enuum: ExprId,
+    pub payload_ty: Option<ExprId>,
 }
 
 #[derive(Debug)]
