@@ -179,7 +179,7 @@ pub enum Decl {
     Static(ExprId),
     Const(ExprId),
     Field { strukt: StructId, index: usize },
-    Variant { enuum: EnumId, index: usize },
+    Variant { enuum: EnumId, index: usize, payload_ty: Option<ExprId>, },
     /// The magic `return_value` declaration, for use in `@guarantees` attributes
     ReturnValue,
     GenericParam(GenericParamId),

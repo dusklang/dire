@@ -43,9 +43,11 @@ pub enum Instr {
     AddressOfStatic(StaticId),
     Pointer { op: OpId, is_mut: bool },
     Struct { fields: SmallVec<[OpId; 2]>, id: StructId },
+    Enum { variants: SmallVec<[OpId; 2]>, id: EnumId },
     StructLit { fields: SmallVec<[OpId; 2]>, id: StructId },
     DirectFieldAccess { val: OpId, index: usize },
     IndirectFieldAccess { val: OpId, index: usize },
+    Variant { enuum: EnumId, index: usize, payload: OpId },
     DiscriminantAccess { val: OpId },
     Ret(OpId),
     Br(BlockId),
@@ -64,8 +66,6 @@ pub enum Const {
     Bool(bool),
     Ty(Type),
     Mod(ModScopeId),
-    // TODO: delet this, you can just write Const::Ty(Type::Enum(id))
-    Enum(EnumId),
     BasicVariant { enuum: EnumId, index: usize },
     StructLit { fields: Vec<Const>, id: StructId },
 }
@@ -77,7 +77,7 @@ impl Const {
             Const::Float { ty, .. } => ty.clone(),
             Const::Str { ty, .. } => ty.clone(),
             Const::Bool(_) => Type::Bool,
-            Const::Ty(_) | Const::Enum(_) => Type::Ty,
+            Const::Ty(_) => Type::Ty,
             &Const::BasicVariant { enuum, .. } => Type::Enum(enuum),
             Const::Mod(_) => Type::Mod,
             &Const::StructLit { id, .. } => Type::Struct(id),
@@ -149,6 +149,14 @@ pub struct StructLayout {
     pub stride: usize,
 }
 
+#[derive(Clone)]
+pub struct EnumLayout {
+    pub payload_offsets: SmallVec<[usize; 2]>,
+    pub alignment: usize,
+    pub size: usize,
+    pub stride: usize,
+}
+
 #[derive(Debug)]
 pub enum BlockState {
     Created,
@@ -166,6 +174,7 @@ pub struct MirCode {
     pub functions: IndexVec<FuncId, Function>,
     pub statics: IndexVec<StaticId, Static>,
     pub structs: HashMap<StructId, Struct>,
+    pub enums: HashMap<EnumId, EnumLayout>,
     pub source_ranges: HashMap<OpId, SourceRange>,
     pub instr_names: HashMap<OpId, String>,
     block_states: HashMap<BlockId, BlockState>,
@@ -189,6 +198,7 @@ impl MirCode {
             functions: IndexVec::new(),
             statics: IndexVec::new(),
             structs: HashMap::new(),
+            enums: HashMap::new(),
             source_ranges: HashMap::new(),
             instr_names: HashMap::new(),
             block_states: HashMap::new(),
