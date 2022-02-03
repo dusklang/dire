@@ -46,6 +46,7 @@ pub enum Instr {
     StructLit { fields: SmallVec<[OpId; 2]>, id: StructId },
     DirectFieldAccess { val: OpId, index: usize },
     IndirectFieldAccess { val: OpId, index: usize },
+    DiscriminantAccess { val: OpId },
     Ret(OpId),
     Br(BlockId),
     CondBr { condition: OpId, true_bb: BlockId, false_bb: BlockId },

@@ -192,7 +192,7 @@ pub struct FieldDecl {
     pub ty: ExprId,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct VariantDecl {
     pub decl: DeclId,
     pub name: Sym,
