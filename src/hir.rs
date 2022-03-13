@@ -22,6 +22,7 @@ define_index_type!(pub struct StructId = u32;);
 define_index_type!(pub struct StructLitId = u32;);
 define_index_type!(pub struct EnumId = u32;);
 define_index_type!(pub struct StoredDeclId = u32;);
+define_index_type!(pub struct PatternBindingDeclId = u32;);
 define_index_type!(pub struct ImperScopeNsId = u32;);
 define_index_type!(pub struct ModScopeNsId = u32;);
 define_index_type!(pub struct ConditionNsId = u32;);
@@ -35,7 +36,7 @@ pub struct FieldAssignment {
 }
 
 /// A declaration in local (imperative) scope
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct ImperScopedDecl {
     pub name: Sym,
     pub num_params: usize,
@@ -108,6 +109,7 @@ pub struct DeclRef {
 #[derive(Debug)]
 pub enum Expr {
     Void,
+    Error,
     IntLit { lit: u64 },
     DecLit { lit: f64 },
     StrLit { lit: CString },
@@ -162,6 +164,30 @@ pub struct ModScope {
     pub decl_groups: HashMap<Sym, Vec<ModScopedDecl>>,
 }
 
+#[derive(Debug, Clone)]
+pub struct PatternBindingDecl {
+    pub paths: Vec<PatternBindingPath>,
+    pub scrutinee: ExprId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PatternBindingPath {
+    pub components: Vec<PatternBindingPathComponent>,
+}
+
+impl PatternBindingPath {
+    pub fn identity() -> Self {
+        PatternBindingPath {
+            components: Vec::new()
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum PatternBindingPathComponent {
+    VariantPayload(usize),
+}
+
 #[derive(Debug)]
 pub enum Decl {
     Computed {
@@ -171,6 +197,7 @@ pub enum Decl {
         generic_params: Range<DeclId>,
     },
     Stored { id: StoredDeclId, is_mut: bool, root_expr: ExprId, },
+    PatternBinding { id: PatternBindingDeclId, is_mut: bool, },
     Parameter {
         /// Parameter index within the function
         index: usize,
@@ -225,11 +252,19 @@ pub struct Ident {
 }
 
 #[derive(Debug, Clone)]
-pub enum Pattern {
+pub struct Pattern {
+    pub kind: PatternKind,
+    pub bindings: Vec<PatternBindingDeclId>,
+}
+
+#[derive(Debug, Clone)]
+pub enum PatternKind {
     ContextualMember {
         name: Ident,
         range: SourceRange,
-    }
+    },
+    NamedCatchAll(Ident),
+    AnonymousCatchAll(SourceRange),
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -337,8 +372,10 @@ impl Intrinsic {
 // These struct literals are necessary because the methods to make an Idx type are not const.
 pub const VOID_EXPR: ExprId = ExprId { _raw: 0 };
 pub const VOID_EXPR_ITEM: ItemId = ItemId { _raw: 0 };
-pub const VOID_TYPE: ExprId = ExprId { _raw: 1 };
-pub const TYPE_TYPE: ExprId = ExprId { _raw: 2 };
+pub const ERROR_EXPR: ExprId = ExprId { _raw: 1 };
+pub const VOID_TYPE: ExprId = ExprId { _raw: 2 };
+pub const TYPE_TYPE: ExprId = ExprId { _raw: 3 };
+pub const ERROR_TYPE: ExprId = ExprId { _raw: 4 };
 pub const RETURN_VALUE_DECL: DeclId = DeclId { _raw: 0 };
 
 pub struct Attribute {
@@ -355,6 +392,7 @@ pub struct HirCode {
     pub source_ranges: IndexVec<ItemId, SourceRange>,
     pub decl_refs: IndexVec<DeclRefId, DeclRef>,
     pub decls: IndexVec<DeclId, Decl>,
+    pub pattern_binding_decls: IndexVec<PatternBindingDeclId, PatternBindingDecl>,
     pub decl_attributes: HashMap<DeclId, Vec<Attribute>>,
     pub expr_to_items: IndexVec<ExprId, ItemId>,
     pub decl_to_items: IndexVec<DeclId, ItemId>,
